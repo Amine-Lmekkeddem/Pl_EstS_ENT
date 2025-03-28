@@ -1,0 +1,32 @@
+version: "3.8"
+
+services:
+  cassandra:
+    image: cassandra:latest
+    container_name: cassandra_db
+    ports:
+      - "9042:9042"
+    volumes:
+      - cassandra_data:/var/lib/cassandra
+    environment:
+      - CASSANDRA_CLUSTER_NAME=MyCluster
+      - CASSANDRA_NUM_TOKENS=256
+    restart: always
+
+  minio:
+    image: quay.io/minio/minio
+    container_name: minio_storage
+    ports:
+      - "9000:9000"
+      - "9001:9001"
+    volumes:
+      - minio_data:/data
+    environment:
+      - MINIO_ROOT_USER=admin
+      - MINIO_ROOT_PASSWORD=admin123
+    command: server --console-address ":9001" /data
+    restart: always
+
+volumes:
+  cassandra_data:
+  minio_data:
