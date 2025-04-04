@@ -1,0 +1,135 @@
+/* 🌟 Style général */
+/*.chat-page {
+   background-color: #f4f4f9;
+  height: 100vh;
+  display: flex;
+  flex-direction: column;
+} */
+
+/* ✅ Header 
+.header-container {
+  background-color: #003366;
+  text-align: center;
+  color: white;
+  font-size: 1.5rem;
+}
+*/
+/* ✅ Conteneur principal */
+/* .chat-container {
+  width: 100%;
+  display: flex;
+  flex-direction: column; /* 🔹 Organisation horizontale 
+  flex: 1;
+  padding: 20px;
+  gap: 20px;
+} */
+
+/* ✅ Menu horizontal
+.menu-container {
+  width: 100%;
+  min-width: 500px;
+  background-color: white;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  border-radius: 8px;
+  display: flex;
+  justify-content: space-around; /* Aligne les éléments horizontalement 
+  padding: 10px;
+  height: auto;
+}
+
+.menu-container a {
+  text-decoration: none;
+  color: #003366;
+  font-size: 1.2rem;
+  padding: 10px 20px;
+  border-radius: 5px;
+  transition: background-color 0.3s ease, color 0.3s ease;
+}
+
+.menu-container a:hover {
+  background-color: #003366;
+  color: white;
+} */
+
+/* ✅ Contenu principal */
+.chat-content {
+  flex: 1;
+  background-color: white;
+  padding: 20px;
+  border-radius: 8px;
+  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+  display: flex;
+  flex-direction: column;
+}
+
+/* ✅ Zone de chat */
+.chat-box {
+  margin-top: 20px;
+  padding: 20px;
+  background-color: white;
+  border-radius: 8px;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+  width: 100%;
+}
+
+.chat-box p {
+  font-size: 1.2rem;
+  color: #555;
+}
+
+/* ✅ Section titre */
+.main-content-titre h1 {
+  font-size: 2rem;
+  color: #333;
+}
+
+.main-content-titre p {
+  font-size: 1.2rem;
+  color: #555;
+}
+
+/* .chat-option button:hover {
+  background-color: #45a049;
+} */
+
+/*-------- --------*/
+/* .chat-page {
+  display: flex;
+  flex-direction: column;
+  height: 100vh;
+  background-color: #f5f5f5; /* Fond léger 
+}
+
+/* Conteneur principal 
+.chat-container {
+  display: flex;
+  flex: 1;
+  padding: 20px;
+  gap: 20px;
+}
+
+/* Menu à gauche 
+.menu-container {
+  width: 250px;
+  background-color: #fff;
+  box-shadow: 2px 0 5px rgba(0, 0, 0, 0.1);
+  border-radius: 8px;
+  padding: 10px;
+}
+
+/* Contenu principal 
+.chat-content {
+  flex: 1;
+  background-color: #fff;
+  padding: 20px;
+  border-radius: 8px;
+  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+}
+
+/* Zone de chat 
+.chat-box {
+  margin-top: 20px;
+  padding: 15px;
+  background-color: #e3e3e3;
+  border-radius: 8px;
+} */

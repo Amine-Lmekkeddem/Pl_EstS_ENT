@@ -1,0 +1,116 @@
+/* styles/Header.css*/
+
+header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 10px 20px;
+  color: white;
+  height: 100%;
+  width: 100%;
+}
+
+header img {
+  height: 50px;
+  width: 150px;
+}
+
+header .email {
+  flex: 1;
+  text-align: center;
+  font-size: 16px;
+  font-weight: bold;
+}
+
+header .button {
+  background-color: #ffcc00;
+  border: none;
+  padding: 10px 15px;
+  cursor: pointer;
+  border-radius: 5px;
+  font-size: 16px;
+}
+
+header .button:hover {
+  background-color: #ffb300;
+}
+
+/* Section de l'utilisateur connecté */
+header .user-info {
+  display: flex;
+  align-items: center;
+}
+
+header .profile-image {
+  height: 40px;
+  width: 40px;
+  border-radius: 50%;
+  margin-right: 10px;
+}
+
+header .user-details {
+  display: flex;
+  flex-direction: column;
+  margin-right: 20px;
+}
+
+header .user-name {
+  font-weight: bold;
+  font-size: 16px;
+}
+
+header .user-role {
+  font-size: 14px;
+}
+
+header .header-actions {
+  display: flex;
+  align-items: center;
+}
+
+header .header-actions button {
+  background: none;
+  border: none;
+  color: white;
+  font-size: 20px;
+  cursor: pointer;
+  margin-left: 10px;
+  transition: background-color 0.3s;
+  padding: 8px 12px; /* Ajuster la taille des icônes */
+  border-radius: 5px; /* Rendre les boutons arrondis */
+}
+
+header .header-actions button:hover {
+  background-color: #ffcc00; /* Changer la couleur de fond au survol */
+}
+
+header .login-section {
+  display: flex;
+  align-items: center;
+}
+
+header .login-section .email {
+  font-size: 16px;
+  font-weight: bold;
+  margin-right: 15px;
+}
+
+/* Styles spécifiques pour les icônes */
+header .header-actions i {
+  font-size: 18px; /* Ajuster la taille des icônes */
+  transition: transform 0.2s;
+}
+
+header .header-actions i:hover {
+  transform: scale(1.2); /* Zoom lors du survol */
+}
+
+/* ------------ ----------- */
+
+/* Responsivité du header */
+@media (max-width: 768px) {
+  .header-container {
+    font-size: 1.2rem;
+    padding: 15px;
+  }
+}
