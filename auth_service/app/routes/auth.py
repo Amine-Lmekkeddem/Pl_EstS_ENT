@@ -7,13 +7,22 @@ from app.utils.keycloak import verify_token, check_user_role, oauth2_scheme
 
 router = APIRouter()
 
+# @router.post("/login", response_model=Token)
+# async def login(login_request: LoginRequest):
+#     try:
+#         token = await get_token(login_request.username, login_request.password)
+#         return token
+#     except Exception as e:
+#         raise HTTPException(status_code=401, detail=str(e))
+# auth_service - route login
 @router.post("/login", response_model=Token)
 async def login(login_request: LoginRequest):
     try:
         token = await get_token(login_request.username, login_request.password)
-        return token
+        return token  # Le token est généré ici
     except Exception as e:
         raise HTTPException(status_code=401, detail=str(e))
+
 # admin route
 @router.get("/admin", dependencies=[Depends(verify_token)])
 async def admin_route(token: str = Depends(oauth2_scheme)):

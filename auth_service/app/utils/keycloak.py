@@ -30,37 +30,39 @@ async def get_keycloak_public_key():
 # Decode and validate the JWT
 async def verify_token(token: str = Security(oauth2_scheme)):
     try:
-        # Extract header and get the kid (key id)
+        # Extraire l'entête et obtenir le kid (key id)
         unverified_header = jwt.get_unverified_header(token)
         kid = unverified_header.get("kid")
+        if not kid:
+            logger.error("No kid found in the token header")
+            raise HTTPException(status_code=401, detail="Invalid token: No kid found")
 
-        # Get public keys from Keycloak
+        # Obtenir les clés publiques de Keycloak
         keys = await get_keycloak_public_key()
         key = next((k for k in keys["keys"] if k["kid"] == kid), None)
-
         if not key:
+            logger.error(f"Key not found for kid: {kid}")
             raise HTTPException(status_code=401, detail="Invalid token: Key not found")
 
-        # Construct the RSA public key
-        # public_key = jwt.algorithms.RSAAlgorithm.from_jwk(key)
-        #public_key = jwt.construct(key)
+        # Construire la clé publique RSA
         public_key = RSAKey(key, ALGORITHMS.RS256)
 
+        # Décoder et valider le token
+        payload = jwt.decode(
+            token,
+            public_key,
+            algorithms=["RS256"],
+            options={"verify_aud": False},  # Vous pouvez valider l'audience si nécessaire
+        )
 
-        # Decode and validate token
-        payload = jwt.decode(token,
-                            public_key,
-                            algorithms=["RS256"],
-                            options={"verify_aud": False},
-                            #audience=[settings.KEYCLOAK_CLIENT_ID, "account"],
-                            )
-
+        # Loguer les informations du payload pour débogage
+        logger.info(f"Token decoded successfully: {payload}")
         return payload
 
     except JWTError as e:
-        #raise HTTPException(status_code=401, detail=f"Invalid or expired token:{str(e)}")
+        # Journaliser l'erreur et lever une exception pour échec de la validation
         logger.error(f"Token verification failed: {e}")
-        raise TokenValidationError()
+        raise HTTPException(status_code=401, detail=f"Invalid or expired token: {str(e)}")
 
 async def check_user_role(token: str, required_roles: list):
     payload = await verify_token(token)
