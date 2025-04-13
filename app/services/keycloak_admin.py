@@ -2,25 +2,6 @@ import httpx
 from fastapi import HTTPException
 from app.config import settings  # adjust to your actual path
 
-# async def get_admin_token():
-#     token_url = f"{settings.KEYCLOAK_URL}/realms/master/protocol/openid-connect/token"
-#     data = {
-#         #"client_id": "admin-cli",
-#         "client_id": settings.KEYCLOAK_CLIENT_ID,
-#         "grant_type": "client_credentials",
-#         "client_secret": settings.KEYCLOAK_CLIENT_SECRET,
-#         # "username": settings.KEYCLOAK_ADMIN_USER,
-#         # "password": settings.KEYCLOAK_ADMIN_PASSWORD,
-#     }
-
-#     async with httpx.AsyncClient() as client:
-#         response = await client.post(token_url, data=data)
-
-#     if response.status_code != 200:
-#         raise HTTPException(status_code=500, detail="Failed to authenticate with Keycloak")
-
-#     return response.json()["access_token"]
-
 async def get_admin_token():
     """
     Obtains an admin token from Keycloak using the admin-cli client
@@ -30,7 +11,7 @@ async def get_admin_token():
         realm = "master"  # Typically 'master' for admin operations
         client_id = "admin-cli"  # Default admin client
         username = "admin"  # Your Keycloak admin username
-        password = "admin"  # Your Keycloak admin password
+        password = "KEYcloak024"  # Your Keycloak admin password
         
         token_url = f"{keycloak_url}/realms/{realm}/protocol/openid-connect/token"
         
@@ -109,3 +90,62 @@ async def create_user_in_keycloak(username: str, email: str, role: str, temp_pas
         await client.post(role_url, json=[role_data], headers=headers)
 
     return {"message": "User created and configured in Keycloak", "user_id": user_id}
+
+
+async def delete_user_from_keycloak(user_id: str):
+    """
+    Delete a user from Keycloak using the same authentication pattern as create_user_in_keycloak
+    Args:
+        user_id: Keycloak user ID (UUID string)
+    Returns:
+        dict: Status message
+    Raises:
+        HTTPException: If any step in the deletion process fails
+    """
+    try:
+        # Get admin token using the same method as create_user_in_keycloak
+        access_token = await get_admin_token()
+        
+        headers = {
+            "Authorization": f"Bearer {access_token}",
+            "Content-Type": "application/json"
+        }
+        
+        # Construct the delete URL
+        delete_url = f"{settings.KEYCLOAK_URL}/admin/realms/{settings.KEYCLOAK_REALM}/users/{user_id}"
+        
+        async with httpx.AsyncClient() as client:
+            # First verify the user exists
+            get_user_url = f"{settings.KEYCLOAK_URL}/admin/realms/{settings.KEYCLOAK_REALM}/users/{user_id}"
+            user_response = await client.get(get_user_url, headers=headers)
+            
+            if user_response.status_code == 404:
+                return {"status": "success", "message": "User not found, nothing to delete"}
+            
+            if user_response.status_code != 200:
+                raise HTTPException(
+                    status_code=user_response.status_code,
+                    detail=f"Failed to verify user: {user_response.text}"
+                )
+            
+            # Delete the user
+            delete_response = await client.delete(delete_url, headers=headers)
+            
+            if delete_response.status_code not in [200, 204]:
+                raise HTTPException(
+                    status_code=delete_response.status_code,
+                    detail=f"Failed to delete user: {delete_response.text}"
+                )
+            
+            return {"status": "success", "message": "User deleted successfully"}
+    
+    except httpx.HTTPStatusError as e:
+        raise HTTPException(
+            status_code=e.response.status_code,
+            detail=f"Keycloak API error: {str(e)}"
+        )
+    except Exception as e:
+        raise HTTPException(
+            status_code=500,
+            detail=f"Failed to delete user from Keycloak: {str(e)}"
+        )
