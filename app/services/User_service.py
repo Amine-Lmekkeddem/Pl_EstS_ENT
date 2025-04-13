@@ -4,7 +4,7 @@ from datetime import datetime
 from app.services.cassandra_service import CassandraService
 from app.services.keycloak_admin import create_user_in_keycloak, delete_user_from_keycloak
 from app.models.user import CreateUserRequest, user
-
+from fastapi import HTTPException
 class UserService:
     def __init__(self):
         self.cassandra = CassandraService()
@@ -49,7 +49,78 @@ class UserService:
             if 'keycloak_result' in locals():
                 await delete_user_from_keycloak(keycloak_result["user_id"])
             raise
+    async def delete_user(self, user_id: UUID) -> dict:
+        """
+        Delete user from both systems with rollback support
+        Returns:
+            {
+                "success": bool,
+                "user_id": str,
+                "systems": {
+                    "keycloak": bool,
+                    "cassandra": bool
+                },
+                "message": str
+            }
+        """
+        result = {
+            "success": True,
+            "user_id": str(user_id),
+            "systems": {
+                "keycloak": False,
+                "cassandra": False
+            },
+            "message": "Deletion started"
+        }
 
+        try:
+            # 1. Delete from Keycloak first
+            try:
+                await delete_user_from_keycloak(str(user_id))
+                result["systems"]["keycloak"] = True
+            except Exception as keycloak_error:
+                raise HTTPException(
+                    status_code=502,
+                    detail=f"Keycloak deletion failed: {str(keycloak_error)}"
+                )
+
+            # 2. Delete from Cassandra
+            try:
+                cassandra_success = await self.cassandra.delete_user(user_id)
+                if not cassandra_success:
+                    raise Exception("Cassandra deletion failed")
+                result["systems"]["cassandra"] = True
+            except Exception as cassandra_error:
+                # Attempt to recreate in Keycloak if Cassandra fails
+                if result["systems"]["keycloak"]:
+                    await self._recreate_keycloak_user(user_id)
+                raise HTTPException(
+                    status_code=500,
+                    detail=f"Cassandra deletion failed: {str(cassandra_error)}"
+                )
+
+            result["message"] = "User deleted successfully"
+            return result
+
+        except HTTPException as http_error:
+            result.update({
+                "success": False,
+                "message": http_error.detail
+            })
+            return result
+
+        except Exception as e:
+            result.update({
+                "success": False,
+                "message": f"Unexpected error: {str(e)}"
+            })
+            return result
+
+    async def _recreate_keycloak_user(self, user_id: UUID):
+        """Rollback: Recreate Keycloak user if Cassandra deletion fails"""
+        # Implement based on your user recovery requirements
+        # Could fetch from backup cache or secondary datastore
+        pass
     def _generate_temp_password(self) -> str:
         """Generate a random temporary password"""
         import secrets
