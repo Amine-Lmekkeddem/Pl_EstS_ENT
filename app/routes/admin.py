@@ -2,26 +2,19 @@ from fastapi import APIRouter, Depends, HTTPException, status
 from app.models.user import CreateUserRequest, user
 from app.services.keycloak_admin import create_user_in_keycloak
 #from app.db.cassandra_connector import get_cassandra_session
-from uuid import uuid4
-from datetime import datetime
 from app.auth.jwt import verify_token
 from fastapi.security import OAuth2PasswordBearer
-from uuid import uuid4
-from datetime import datetime
-import secrets
-import string
-import logging
-from traceback import format_exc
+from app.services.enrollment_serivce import EnrollmentService
 from app.db.cassandra_connector import connect_to_cassandra
 from uuid import UUID
 from cassandra.cluster import Cluster
-from app.config import settings
+
 from app.services.keycloak_admin import delete_user_from_keycloak
 from app.services.User_service import UserService
 from app.dependencies import get_user_service 
-from app.services.cassandra_service import CassandraService
 from app.models.Course import course, CreateCourseRequest
 from app.services.cources_serivce import CourseService
+from app.models.enrollments import CreateEnrollmentRequest
 router = APIRouter()
 
 oauth2_scheme = OAuth2PasswordBearer(tokenUrl="auth/login", auto_error=True)
@@ -126,3 +119,26 @@ async def delete_course(
         raise
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
+
+enrollment_service = EnrollmentService()
+#end point for enrollment isnertion 
+@router.post("/enrollments", status_code=201)
+async def create_enrollment(
+    enrollment_data: CreateEnrollmentRequest,
+    token_data: dict = Depends(verify_token)
+):
+    if "admin" not in token_data.get("roles", []):
+        raise HTTPException(status_code=403, detail="Admin privileges required")
+
+    return await enrollment_service.create_enrollment(enrollment_data)
+# end point to delete enrollment from cassandra
+@router.delete("/enrollments/{student_id}/{semester}")
+async def delete_enrollments_by_student_and_semester(
+    student_id: UUID,
+    semester: str,
+    token_data: dict = Depends(verify_token)
+):
+    if "admin" not in token_data.get("roles", []):
+        raise HTTPException(status_code=403, detail="Admin privileges required")
+
+    return await enrollment_service.delete_by_student_and_semester(student_id, semester)

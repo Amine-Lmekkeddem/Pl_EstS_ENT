@@ -17,7 +17,7 @@ class CassandraService:
             ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
             
         """)
-        # Prepare delete statements
+        # Prepare delete statements 
         self.prepared_delete_user = self.session.prepare("""
             DELETE FROM users WHERE user_id = ?
         """)
@@ -30,6 +30,15 @@ class CassandraService:
         self.prepared_delete_course = self.session.prepare("""
             DELETE FROM courses WHERE course_id = ?
         """)
+        # prepare enrollment insert and delete statements
+        self.prepared_insert_enrollment = self.session.prepare("""
+            INSERT INTO enrollments (
+                enrollment_id, student_id, enrolled_at, semester
+            ) VALUES (?, ?, ?, ?)
+        """)                      
+        self.prepared_delete_enrollment = self.session.prepare("""
+            DELETE FROM enrollments  WHERE student_id = ? AND semester = ?
+        """)    
 
     async def create_user(self, user_data: user) -> user:
         """Insert a user into Cassandra"""
@@ -73,6 +82,24 @@ class CassandraService:
             return True
         except Exception:
             return False 
+    # function for inserting on enrollment table 
+    async def create_enrollment(self, enrollment_data):
+        self.session.execute(self.prepared_insert_enrollment, (
+            enrollment_data.enrollment_id,
+            enrollment_data.student_id,
+            enrollment_data.enrolled_at,
+            enrollment_data.semester
+    ))
+        return enrollment_data
+    # function for deleting from enrollment table
+    async def delete_enrollments_by_student_and_semester(self, student_id: UUID, semester: str):
+        """Delete enrollments by student_id and semester"""
+        try:
+            self.session.execute(self.prepared_delete_enrollment, (student_id, semester))
+            return True
+        except Exception:
+            return False
+    
     def __del__(self):
         """Clean up connection when service is destroyed"""
         self.cluster.shutdown()
